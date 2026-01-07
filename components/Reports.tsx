@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Entry, Category, Report } from '../types';
 import { generateAIReport } from '../services/geminiService';
+import { useToast } from '../hooks/useToast';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Brain, History, Loader2, FileText, ChevronRight } from 'lucide-react';
@@ -20,6 +21,7 @@ const PERIOD_LABELS = {
 };
 
 export const Reports: React.FC<ReportsProps> = ({ entries, categories, reports, onReportGenerated }) => {
+  const { showError } = useToast();
   const [loading, setLoading] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [period, setPeriod] = useState<'Day' | 'Week' | 'Month'>('Week');
@@ -52,7 +54,7 @@ export const Reports: React.FC<ReportsProps> = ({ entries, categories, reports, 
       onReportGenerated(newReport);
       setSelectedReport(newReport);
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Произошла ошибка');
+      showError(error instanceof Error ? error.message : 'Произошла ошибка при генерации отчета');
     } finally {
       setLoading(false);
     }

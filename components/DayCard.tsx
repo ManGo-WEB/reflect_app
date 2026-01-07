@@ -4,6 +4,8 @@ import { format, isToday } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Entry, Category } from '../types';
 import { IconRenderer } from './IconRenderer';
+import { getColorClasses } from '../utils/colorUtils';
+import { ConfirmDialog } from './ConfirmDialog';
 import { Edit2, Trash2 } from 'lucide-react';
 
 interface DayCardProps {
@@ -17,6 +19,10 @@ interface DayCardProps {
 export const DayCard: React.FC<DayCardProps> = ({ date, entries, categories, onEditEntry, onDeleteEntry }) => {
   const today = isToday(date);
   const [hoveredEntryId, setHoveredEntryId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; entryId: string | null }>({
+    isOpen: false,
+    entryId: null,
+  });
   
   const getDayTitle = () => {
     // Формат: "Пн, 30 Дек" для компактности
@@ -30,9 +36,18 @@ export const DayCard: React.FC<DayCardProps> = ({ date, entries, categories, onE
 
   const handleDeleteClick = (e: React.MouseEvent, entryId: string) => {
     e.stopPropagation();
-    if (window.confirm('Вы уверены, что хотите удалить эту запись?')) {
-      onDeleteEntry?.(entryId);
+    setConfirmDelete({ isOpen: true, entryId });
+  };
+
+  const handleConfirmDelete = () => {
+    if (confirmDelete.entryId) {
+      onDeleteEntry?.(confirmDelete.entryId);
+      setConfirmDelete({ isOpen: false, entryId: null });
     }
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmDelete({ isOpen: false, entryId: null });
   };
 
   const handleEditClick = (e: React.MouseEvent, entry: Entry) => {
@@ -82,7 +97,7 @@ export const DayCard: React.FC<DayCardProps> = ({ date, entries, categories, onE
                 onMouseLeave={() => setHoveredEntryId(null)}
                 onClick={() => onEditEntry?.(entry)}
               >
-                <div className={`mt-0.5 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-${cat?.color || 'slate'}-100 text-${cat?.color || 'slate'}-600 elevation-1`}>
+                <div className={`mt-0.5 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${getColorClasses(cat?.color || 'blue').bg100} ${getColorClasses(cat?.color || 'blue').text600} elevation-1`}>
                   <IconRenderer name={cat?.icon || 'MessageCircle'} className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0 relative">
@@ -122,6 +137,17 @@ export const DayCard: React.FC<DayCardProps> = ({ date, entries, categories, onE
           })
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDelete.isOpen}
+        title="Удалить запись?"
+        message="Вы уверены, что хотите удалить эту запись? Это действие нельзя отменить."
+        confirmText="Удалить"
+        cancelText="Отмена"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        type="danger"
+      />
     </div>
   );
 };

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Category } from '../types';
 import { ICON_LIBRARY, COLORS } from '../constants';
 import { IconRenderer } from './IconRenderer';
+import { getColorClasses, getBg500Class } from '../utils/colorUtils';
 import { Plus, X, Trash2, Edit2, Check } from 'lucide-react';
 
 interface CategoryManagerProps {
@@ -60,7 +61,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, on
             className="bg-white p-4 rounded-lg elevation-1 hover:elevation-4 flex items-center justify-between group transition-all"
           >
             <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center bg-${cat.color}-100 text-${cat.color}-600 elevation-1`}>
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${getColorClasses(cat.color).bg100} ${getColorClasses(cat.color).text600} elevation-1`}>
                 <IconRenderer name={cat.icon} className="w-6 h-6" />
               </div>
               <div>
@@ -132,7 +133,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, on
                     <button
                       key={color}
                       onClick={() => setFormData(prev => ({ ...prev, color }))}
-                      className={`w-10 h-10 rounded-full border-2 transition-all bg-${color}-500 ripple ${
+                      className={`w-10 h-10 rounded-full border-2 transition-all ${getBg500Class(color)} ripple ${
                         formData.color === color 
                           ? 'border-[#1976D2] scale-110 elevation-2' 
                           : 'border-transparent hover:elevation-1'

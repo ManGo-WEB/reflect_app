@@ -2,6 +2,25 @@
 import { GoogleGenAI } from "@google/genai";
 import { Entry, Category } from "../types";
 
+/**
+ * Проверяет наличие и валидность API ключа Gemini
+ */
+const validateApiKey = (): string => {
+  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error(
+      'API ключ Gemini не найден. Пожалуйста, создайте файл .env.local и добавьте переменную GEMINI_API_KEY=ваш_ключ'
+    );
+  }
+
+  if (typeof apiKey !== 'string' || apiKey.trim().length === 0) {
+    throw new Error('API ключ Gemini пустой или невалидный');
+  }
+
+  return apiKey.trim();
+};
+
 export const generateAIReport = async (
   entries: Entry[],
   categories: Category[],
@@ -11,7 +30,9 @@ export const generateAIReport = async (
     return "Записей за этот период не найдено.";
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // Проверяем API ключ перед использованием
+  const apiKey = validateApiKey();
+  const ai = new GoogleGenAI({ apiKey });
   
   const entriesFormatted = entries.map(e => {
     const cat = categories.find(c => c.id === e.categoryId);

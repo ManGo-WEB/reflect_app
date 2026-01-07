@@ -2,46 +2,53 @@
 import { useState, useEffect } from 'react';
 import { Entry, Category, Report } from '../types';
 import { INITIAL_CATEGORIES } from '../constants';
+import { safeGetItem, safeSetItem } from '../utils/localStorageUtils';
+import { parseDateString } from '../utils/dateUtils';
+
+const STORAGE_KEYS = {
+  entries: 'reflect_entries',
+  categories: 'reflect_categories',
+  reports: 'reflect_reports',
+} as const;
 
 export const useJournal = () => {
   const [entries, setEntries] = useState<Entry[]>(() => {
-    const saved = localStorage.getItem('reflect_entries');
-    return saved ? JSON.parse(saved) : [];
+    return safeGetItem<Entry[]>(STORAGE_KEYS.entries, []);
   });
 
   const [categories, setCategories] = useState<Category[]>(() => {
-    const saved = localStorage.getItem('reflect_categories');
-    return saved ? JSON.parse(saved) : INITIAL_CATEGORIES;
+    return safeGetItem<Category[]>(STORAGE_KEYS.categories, INITIAL_CATEGORIES);
   });
 
   const [reports, setReports] = useState<Report[]>(() => {
-    const saved = localStorage.getItem('reflect_reports');
-    return saved ? JSON.parse(saved) : [];
+    return safeGetItem<Report[]>(STORAGE_KEYS.reports, []);
   });
 
   useEffect(() => {
-    localStorage.setItem('reflect_entries', JSON.stringify(entries));
+    const success = safeSetItem(STORAGE_KEYS.entries, entries);
+    if (!success) {
+      console.warn('Failed to save entries to localStorage');
+    }
   }, [entries]);
 
   useEffect(() => {
-    localStorage.setItem('reflect_categories', JSON.stringify(categories));
+    const success = safeSetItem(STORAGE_KEYS.categories, categories);
+    if (!success) {
+      console.warn('Failed to save categories to localStorage');
+    }
   }, [categories]);
 
   useEffect(() => {
-    localStorage.setItem('reflect_reports', JSON.stringify(reports));
+    const success = safeSetItem(STORAGE_KEYS.reports, reports);
+    if (!success) {
+      console.warn('Failed to save reports to localStorage');
+    }
   }, [reports]);
 
   const addEntry = (text: string, categoryId: string, customDate?: string) => {
     const tags = text.match(/#[\w\u0400-\u04FF]+/g) || [];
     
-    let finalDate = new Date();
-    
-    if (customDate) {
-      const [year, month, day] = customDate.split('-').map(Number);
-      // Устанавливаем время на полдень (12:00:00) локального времени. 
-      // Это гарантирует, что дата не "уплывет" при сохранении в ISOString
-      finalDate = new Date(year, month - 1, day, 12, 0, 0);
-    }
+    const finalDate = customDate ? parseDateString(customDate) : new Date();
 
     const newEntry: Entry = {
       id: crypto.randomUUID(),
@@ -59,12 +66,7 @@ export const useJournal = () => {
   const updateEntry = (id: string, text: string, categoryId: string, customDate?: string) => {
     const tags = text.match(/#[\w\u0400-\u04FF]+/g) || [];
     
-    let finalDate = new Date();
-    
-    if (customDate) {
-      const [year, month, day] = customDate.split('-').map(Number);
-      finalDate = new Date(year, month - 1, day, 12, 0, 0);
-    }
+    const finalDate = customDate ? parseDateString(customDate) : new Date();
 
     setEntries(prev => prev.map(e => 
       e.id === id 

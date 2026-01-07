@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Entry, Category } from '../types';
 import { DayCard } from './DayCard';
+import { DASHBOARD_CONSTANTS } from '../constants';
 import { addDays, subDays, startOfToday, isSameDay, startOfWeek, format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
@@ -23,12 +24,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ entries, categories, onEdi
     const today = startOfToday();
     const currentMonday = startOfWeek(today, { weekStartsOn: 1 });
     
-    // Генерируем 8 недель назад и 16 недель вперед (всего 24 недели / 168 дней)
-    // Это создает огромный запас контента, чтобы "Сегодня" никогда не было у самого края
-    const startPoint = subDays(currentMonday, 56); 
+    // Генерируем начальный диапазон дней
+    // Это создает запас контента, чтобы "Сегодня" никогда не было у самого края
+    const weeksBackInDays = DASHBOARD_CONSTANTS.WEEKS_BACK * DASHBOARD_CONSTANTS.DAYS_PER_WEEK;
+    const startPoint = subDays(currentMonday, weeksBackInDays); 
     
     const initialDays = [];
-    for (let i = 0; i < 168; i++) {
+    for (let i = 0; i < DASHBOARD_CONSTANTS.INITIAL_DAYS_COUNT; i++) {
       initialDays.push(addDays(startPoint, i));
     }
     
@@ -46,11 +48,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ entries, categories, onEdi
         if (todayElement && container) {
           // Вычисляем позицию элемента относительно контейнера
           const offsetTop = todayElement.offsetTop;
-          // Прокручиваем контейнер. 80px - это запас под верхнюю навигацию
-          container.scrollTop = offsetTop - 80;
+          // Прокручиваем контейнер с учетом отступа под верхнюю навигацию
+          container.scrollTop = offsetTop - DASHBOARD_CONSTANTS.SCROLL_TOP_OFFSET;
           isInitialScrollDone.current = true;
         }
-      }, 150);
+      }, DASHBOARD_CONSTANTS.INITIAL_SCROLL_DELAY);
 
       return () => clearTimeout(timer);
     }
@@ -71,8 +73,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ entries, categories, onEdi
     
     const oldestDay = days[0];
     const newDays = [];
-    // Добавляем сразу 4 недели (28 дней)
-    for (let i = 28; i >= 1; i--) {
+    // Добавляем дни для подгрузки
+    for (let i = DASHBOARD_CONSTANTS.LOAD_MORE_DAYS; i >= 1; i--) {
       newDays.push(subDays(oldestDay, i));
     }
 
@@ -96,7 +98,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ entries, categories, onEdi
     loadingRef.current = true;
     const newestDay = days[days.length - 1];
     const newDays = [];
-    for (let i = 1; i <= 28; i++) {
+    for (let i = 1; i <= DASHBOARD_CONSTANTS.LOAD_MORE_DAYS; i++) {
       newDays.push(addDays(newestDay, i));
     }
     setDays(prev => [...prev, ...newDays]);
@@ -107,17 +109,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ entries, categories, onEdi
     if (!containerRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
     
-    // Увеличенные пороги для более плавной подгрузки
-    if (scrollTop <= 600) {
+    // Пороги для подгрузки контента при скролле
+    if (scrollTop <= DASHBOARD_CONSTANTS.SCROLL_THRESHOLD) {
       loadMorePast();
     }
-    if (scrollHeight - scrollTop <= clientHeight + 600) {
+    if (scrollHeight - scrollTop <= clientHeight + DASHBOARD_CONSTANTS.SCROLL_THRESHOLD) {
       loadMoreFuture();
     }
   };
 
-  const entriesByDay = (date: Date) => {
-    return entries.filter(e => isSameDay(new Date(e.createdAt), date));
+  // Мемоизированная группировка записей по дням
+  const entriesByDayMap = useMemo(() => {
+    const map = new Map<string, Entry[]>();
+    entries.forEach(entry => {
+      const entryDate = new Date(entry.createdAt);
+      const dateKey = format(entryDate, 'yyyy-MM-dd');
+      if (!map.has(dateKey)) {
+        map.set(dateKey, []);
+      }
+      map.get(dateKey)!.push(entry);
+    });
+    return map;
+  }, [entries]);
+
+  const entriesByDay = (date: Date): Entry[] => {
+    const dateKey = format(date, 'yyyy-MM-dd');
+    return entriesByDayMap.get(dateKey) || [];
   };
 
   return (

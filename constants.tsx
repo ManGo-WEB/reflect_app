@@ -18,3 +18,21 @@ export const ICON_LIBRARY = [
 export const COLORS = [
   'blue', 'green', 'red', 'purple', 'yellow', 'orange', 'pink', 'teal', 'indigo'
 ];
+
+// Константы для Dashboard
+export const DASHBOARD_CONSTANTS = {
+  // Количество дней для начальной загрузки (24 недели = 168 дней)
+  INITIAL_DAYS_COUNT: 168,
+  // Количество недель назад от текущей недели
+  WEEKS_BACK: 8,
+  // Количество дней в неделе
+  DAYS_PER_WEEK: 7,
+  // Количество дней для подгрузки при скролле (4 недели)
+  LOAD_MORE_DAYS: 28,
+  // Порог скролла в пикселях для подгрузки контента
+  SCROLL_THRESHOLD: 600,
+  // Отступ сверху при прокрутке к текущей дате (под навигацию)
+  SCROLL_TOP_OFFSET: 80,
+  // Задержка для инициализации скролла (мс)
+  INITIAL_SCROLL_DELAY: 150,
+} as const;
