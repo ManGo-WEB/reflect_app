@@ -1,25 +1,9 @@
 
-import { GoogleGenAI } from "@google/genai";
 import { Entry, Category } from "../types";
 
-/**
- * Проверяет наличие и валидность API ключа Gemini
- */
-const validateApiKey = (): string => {
-  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
-  
-  if (!apiKey) {
-    throw new Error(
-      'API ключ Gemini не найден. Пожалуйста, создайте файл .env.local и добавьте переменную GEMINI_API_KEY=ваш_ключ'
-    );
-  }
-
-  if (typeof apiKey !== 'string' || apiKey.trim().length === 0) {
-    throw new Error('API ключ Gemini пустой или невалидный');
-  }
-
-  return apiKey.trim();
-};
+// URL прокси-сервера (используем переменную окружения или дефолтное значение)
+// В dev режиме используем относительный путь для проксирования через Vite
+const PROXY_URL = import.meta.env.VITE_PROXY_URL || '';
 
 export const generateAIReport = async (
   entries: Entry[],
@@ -30,10 +14,6 @@ export const generateAIReport = async (
     return "Записей за этот период не найдено.";
   }
 
-  // Проверяем API ключ перед использованием
-  const apiKey = validateApiKey();
-  const ai = new GoogleGenAI({ apiKey });
-  
   const entriesFormatted = entries.map(e => {
     const cat = categories.find(c => c.id === e.categoryId);
     return `[${new Date(e.createdAt).toLocaleTimeString('ru-RU')}][Категория: ${cat?.name || 'Неизвестно'}] ${e.text}`;
@@ -58,18 +38,73 @@ export const generateAIReport = async (
   `;
 
   try {
-    const response = await ai.models.generateContent({
+    console.log('Начинаю генерацию отчета AI через прокси...', { 
+      entriesCount: entries.length, 
+      period,
       model: 'gemini-3-flash-preview',
-      contents: prompt,
-      config: {
-        temperature: 0.7,
-        topP: 0.95,
-      },
+      proxyUrl: PROXY_URL
     });
 
-    return response.text || "Не удалось сгенерировать отчет AI.";
-  } catch (error) {
+    // Используем относительный путь для проксирования через Vite в dev режиме
+    // Или полный URL если указан VITE_PROXY_URL
+    const endpoint = PROXY_URL 
+      ? `${PROXY_URL}/api/gemini/generate` 
+      : '/api/gemini/generate';
+    
+    console.log('Отправка запроса к:', endpoint);
+    
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt,
+        model: 'gemini-3-flash-preview',
+        temperature: 0.7,
+        topP: 0.95,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      console.error('Proxy Error Response:', errorData);
+      throw new Error(errorData.error?.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    if (!data.text || data.text.trim().length === 0) {
+      console.error('Пустой ответ от прокси:', data);
+      throw new Error('AI вернул пустой ответ');
+    }
+
+    const result = data.text.trim();
+    console.log('Отчет успешно сгенерирован, длина:', result.length);
+    return result;
+  } catch (error: any) {
     console.error("AI Report Error:", error);
-    throw new Error("Ошибка при генерации отчета. Проверьте настройки API или попробуйте позже.");
+    
+    // Более детальное сообщение об ошибке
+    let errorMessage = "Ошибка при генерации отчета.";
+    
+    if (error?.message) {
+      errorMessage += ` ${error.message}`;
+    } else if (typeof error === 'string') {
+      errorMessage += ` ${error}`;
+    }
+    
+    // Специальные сообщения для частых ошибок
+    if (error?.message?.includes('Failed to fetch') || error?.message?.includes('NetworkError')) {
+      errorMessage = `Прокси-сервер недоступен. Убедитесь, что он запущен на ${PROXY_URL}. Запустите: npm run dev:proxy`;
+    } else if (error?.message?.includes('API key') || error?.message?.includes('authentication')) {
+      errorMessage = "Неверный API ключ Gemini. Проверьте переменную окружения GEMINI_API_KEY в прокси-сервере.";
+    } else if (error?.message?.includes('quota') || error?.message?.includes('limit')) {
+      errorMessage = "Превышен лимит запросов к Gemini API. Попробуйте позже.";
+    } else if (error?.message?.includes('location') || error?.message?.includes('not supported')) {
+      errorMessage = "Геолокация не поддерживается. Используйте прокси-сервер с VPN или прокси.";
+    }
+    
+    throw new Error(errorMessage);
   }
 };

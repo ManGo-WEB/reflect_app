@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Entry, Category } from '../types';
 import { DayCard } from './DayCard';
 import { DASHBOARD_CONSTANTS } from '../constants';
-import { addDays, subDays, startOfToday, isSameDay, startOfWeek, format } from 'date-fns';
+import { addDays, subDays, startOfToday, isSameDay, startOfWeek, format, parseISO } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
 interface DashboardProps {
@@ -119,10 +119,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ entries, categories, onEdi
   };
 
   // Мемоизированная группировка записей по дням
+  // Используем локальное время для определения дня записи
+  // Это гарантирует корректную группировку независимо от часового пояса в ISO строке
   const entriesByDayMap = useMemo(() => {
     const map = new Map<string, Entry[]>();
     entries.forEach(entry => {
-      const entryDate = new Date(entry.createdAt);
+      // parseISO правильно обрабатывает ISO строки и конвертирует в локальное время
+      const entryDate = parseISO(entry.createdAt);
+      // format использует локальное время, поэтому дата будет корректной
       const dateKey = format(entryDate, 'yyyy-MM-dd');
       if (!map.has(dateKey)) {
         map.set(dateKey, []);

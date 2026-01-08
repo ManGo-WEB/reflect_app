@@ -11,8 +11,10 @@ export const INITIAL_CATEGORIES: Category[] = [
 ];
 
 export const ICON_LIBRARY = [
-  'Briefcase', 'Home', 'Heart', 'Lightbulb', 'User', 'Smile', 'Star', 'Coffee', 
-  'Cloud', 'Moon', 'Sun', 'Book', 'Camera', 'Music', 'Map', 'Zap', 'Target'
+  'Briefcase', 'Home', 'Heart', 'Lightbulb', 'User', 'UserIcon', 'Smile', 'SmileIcon', 
+  'Star', 'Coffee', 'Cloud', 'Moon', 'Sun', 'Book', 'Camera', 'Music', 'Map', 'Zap', 
+  'Target', 'Calendar', 'CalendarIcon', 'MessageCircle', 'MessageCircleIcon',
+  'MessageSquare', 'MessageSquareIcon', 'HelpCircle', 'HelpCircleIcon'
 ];
 
 export const COLORS = [

@@ -66,7 +66,6 @@ export const EntryModal: React.FC<EntryModalProps> = ({ isOpen, onClose, categor
   }, [isOpen, isCatDropdownOpen, onClose]);
 
   // Управление фокусом при открытии модального окна
-  const modalRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (isOpen && modalRef.current) {
       // Фокусируемся на первом интерактивном элементе

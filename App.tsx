@@ -4,29 +4,46 @@ import { Dashboard } from './components/Dashboard';
 import { Reports } from './components/Reports';
 import { CategoryManager } from './components/CategoryManager';
 import { EntryModal } from './components/EntryModal';
+import { AuthModal } from './components/AuthModal';
 import { ToastContainer } from './components/Toast';
 import { useJournal } from './store/useJournal';
+import { useAuth } from './hooks/useAuth';
 import { useToast } from './hooks/useToast';
 import { ViewMode, Entry } from './types';
-import { LayoutDashboard, Brain, Settings, Plus } from 'lucide-react';
+import { LayoutDashboard, Brain, Settings, Plus, LogOut } from 'lucide-react';
 
 const App: React.FC = () => {
-  const { entries, categories, reports, addEntry, updateEntry, deleteEntry, addCategory, updateCategory, deleteCategory, addReport } = useJournal();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { entries, categories, reports, addEntry, updateEntry, deleteEntry, addCategory, updateCategory, deleteCategory, addReport, loading: journalLoading } = useJournal();
   const { toasts, removeToast, showError } = useToast();
   const [view, setView] = useState<ViewMode>(ViewMode.DASHBOARD);
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
 
-  const handleSubmitEntry = (text: string, categoryId: string, date: string, entryId?: string) => {
-    if (entryId) {
-      // Режим редактирования
-      updateEntry(entryId, text, categoryId, date);
-    } else {
-      // Режим создания
-      addEntry(text, categoryId, date);
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error: any) {
+      showError('Ошибка при выходе из аккаунта');
     }
-    setIsEntryModalOpen(false);
-    setEditingEntry(null);
+  };
+
+  const handleSubmitEntry = async (text: string, categoryId: string, date: string, entryId?: string) => {
+    try {
+      if (entryId) {
+        // Режим редактирования
+        await updateEntry(entryId, text, categoryId, date);
+      } else {
+        // Режим создания
+        await addEntry(text, categoryId, date);
+      }
+      setIsEntryModalOpen(false);
+      setEditingEntry(null);
+    } catch (error) {
+      // Ошибка уже обработана в useJournal
+      console.error('Ошибка при сохранении записи:', error);
+    }
   };
 
   const handleEditEntry = (entry: Entry) => {
@@ -70,6 +87,45 @@ const App: React.FC = () => {
     }
   };
 
+  // Показываем AuthModal, если пользователь не авторизован
+  if (!authLoading && !user) {
+    return (
+      <div className="flex flex-col h-screen overflow-hidden bg-[#FAFAFA] text-[rgba(0,0,0,0.87)] items-center justify-center">
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 bg-[#1976D2] rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-6 h-6 bg-white rounded-full animate-pulse" />
+          </div>
+          <h1 className="font-medium text-2xl text-[rgba(0,0,0,0.87)] mb-2">Reflect</h1>
+          <p className="text-sm text-[rgba(0,0,0,0.6)]">Войдите, чтобы начать вести дневник</p>
+        </div>
+        <button
+          onClick={() => setIsAuthModalOpen(true)}
+          className="px-6 py-3 bg-[#1976D2] text-white rounded-lg font-medium hover:bg-[#1565C0] elevation-2 transition-all ripple"
+        >
+          Войти
+        </button>
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onSuccess={() => setIsAuthModalOpen(false)}
+        />
+        <ToastContainer toasts={toasts} onClose={removeToast} />
+      </div>
+    );
+  }
+
+  // Показываем загрузку
+  if (authLoading || journalLoading) {
+    return (
+      <div className="flex flex-col h-screen overflow-hidden bg-[#FAFAFA] items-center justify-center">
+        <div className="w-10 h-10 bg-[#1976D2] rounded-full flex items-center justify-center animate-pulse">
+          <div className="w-3 h-3 bg-white rounded-full" />
+        </div>
+        <p className="mt-4 text-sm text-[rgba(0,0,0,0.6)]">Загрузка...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#FAFAFA] text-[rgba(0,0,0,0.87)]">
       {/* Top Navbar */}
@@ -102,7 +158,19 @@ const App: React.FC = () => {
           ))}
         </div>
 
-        <div className="md:w-32 flex justify-end" />
+        <div className="md:w-32 flex justify-end items-center gap-3">
+          <span className="hidden md:block text-sm text-[rgba(0,0,0,0.6)] truncate max-w-[200px]">
+            {user?.email}
+          </span>
+          <button
+            onClick={handleSignOut}
+            className="p-2 hover:bg-[rgba(0,0,0,0.04)] rounded-full transition-colors ripple"
+            aria-label="Выйти"
+            title="Выйти"
+          >
+            <LogOut className="w-5 h-5 text-[rgba(0,0,0,0.6)]" />
+          </button>
+        </div>
       </nav>
 
       {/* Main Content Area */}

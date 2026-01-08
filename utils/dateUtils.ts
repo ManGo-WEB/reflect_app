@@ -20,6 +20,68 @@ export const parseDateString = (dateString: string): Date => {
 };
 
 /**
+ * Создаёт Date на основе строки yyyy-MM-dd, но с временем из `timeSource` (локальное время).
+ * Важно: использует UTC методы для создания даты, чтобы гарантировать, что при конвертации в ISO
+ * дата не сместится на день назад/вперёд из-за часового пояса.
+ * 
+ * Пример: если пользователь выбрал 8 января и создал запись в 05:00 (UTC+8),
+ * то в UTC это будет 21:00 7 января. Но мы хотим сохранить дату как 8 января.
+ * Поэтому создаём Date в UTC с выбранной датой и реальным временем.
+ */
+export const combineDateStringWithTime = (dateString: string, timeSource: Date = new Date()): Date => {
+  const [year, month, day] = dateString.split('-').map(Number);
+  if (isNaN(year) || isNaN(month) || isNaN(day)) {
+    throw new Error(`Invalid date string format: ${dateString}. Expected yyyy-MM-dd`);
+  }
+
+  // Используем UTC методы для создания даты, чтобы дата в UTC соответствовала выбранной
+  // Время берём из timeSource (локальное время пользователя)
+  const utcDate = new Date(Date.UTC(
+    year,
+    month - 1,
+    day,
+    timeSource.getHours(),
+    timeSource.getMinutes(),
+    timeSource.getSeconds(),
+    timeSource.getMilliseconds()
+  ));
+
+  // Но это создаст дату в UTC, а нам нужно в локальном времени
+  // Поэтому создаём в локальном времени, но проверяем, что дата не сместилась
+  const localDate = new Date(
+    year,
+    month - 1,
+    day,
+    timeSource.getHours(),
+    timeSource.getMinutes(),
+    timeSource.getSeconds(),
+    timeSource.getMilliseconds()
+  );
+
+  // Проверяем: если при конвертации в UTC дата сместилась, корректируем
+  const utcYear = localDate.getUTCFullYear();
+  const utcMonth = localDate.getUTCMonth() + 1;
+  const utcDay = localDate.getUTCDate();
+
+  // Если дата в UTC не совпадает с выбранной, корректируем
+  if (utcYear !== year || utcMonth !== month || utcDay !== day) {
+    // Смещение произошло - используем UTC дату с выбранной датой
+    // но время оставляем реальное
+    return new Date(Date.UTC(
+      year,
+      month - 1,
+      day,
+      timeSource.getHours(),
+      timeSource.getMinutes(),
+      timeSource.getSeconds(),
+      timeSource.getMilliseconds()
+    ));
+  }
+
+  return localDate;
+};
+
+/**
  * Форматирует Date в строку формата yyyy-MM-dd для input[type="date"]
  */
 export const formatDateForInput = (date: Date): string => {
