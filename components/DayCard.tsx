@@ -6,7 +6,10 @@ import { Entry, Category } from '../types';
 import { IconRenderer } from './IconRenderer';
 import { getColorClasses } from '../utils/colorUtils';
 import { ConfirmDialog } from './ConfirmDialog';
-import { Edit2, Trash2 } from 'lucide-react';
+import { 
+  PencilIcon as Edit2,
+  TrashIcon as Trash2
+} from '@heroicons/react/24/outline';
 
 interface DayCardProps {
   date: Date;
@@ -82,7 +85,7 @@ export const DayCard: React.FC<DayCardProps> = ({ date, entries, categories, onE
       <div className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar">
         {entries.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-[rgba(0,0,0,0.38)]">
-            <IconRenderer name="Calendar" className="w-6 h-6 mb-2" />
+            <IconRenderer name="CalendarIcon" className="w-6 h-6 mb-2" />
             <p className="text-xs font-medium text-[rgba(0,0,0,0.38)]">Пусто</p>
           </div>
         ) : (
@@ -98,7 +101,7 @@ export const DayCard: React.FC<DayCardProps> = ({ date, entries, categories, onE
                 onClick={() => onEditEntry?.(entry)}
               >
                 <div className={`mt-0.5 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${getColorClasses(cat?.color || 'blue').bg100} ${getColorClasses(cat?.color || 'blue').text600} elevation-1`}>
-                  <IconRenderer name={cat?.icon || 'MessageCircle'} className="w-4 h-4" />
+                  <IconRenderer name={cat?.icon || 'ChatBubbleLeftIcon'} className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0 relative">
                   {/* Иконки редактирования и удаления при наведении - поверх текста */}

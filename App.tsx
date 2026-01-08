@@ -10,7 +10,13 @@ import { useJournal } from './store/useJournal';
 import { useAuth } from './hooks/useAuth';
 import { useToast } from './hooks/useToast';
 import { ViewMode, Entry } from './types';
-import { LayoutDashboard, Brain, Settings, Plus, LogOut } from 'lucide-react';
+import { 
+  Squares2X2Icon as LayoutDashboard,
+  SparklesIcon as Brain,
+  Cog6ToothIcon as Settings,
+  PlusIcon as Plus,
+  ArrowRightOnRectangleIcon as LogOut
+} from '@heroicons/react/24/outline';
 
 const App: React.FC = () => {
   const { user, loading: authLoading, signOut } = useAuth();

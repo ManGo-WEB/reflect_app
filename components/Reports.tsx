@@ -5,7 +5,13 @@ import { generateAIReport } from '../services/geminiService';
 import { useToast } from '../hooks/useToast';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Brain, History, Loader2, FileText, ChevronRight } from 'lucide-react';
+import { 
+  SparklesIcon as Brain,
+  ClockIcon as History,
+  ArrowPathIcon as Loader2,
+  DocumentTextIcon as FileText,
+  ChevronRightIcon as ChevronRight
+} from '@heroicons/react/24/outline';
 
 interface ReportsProps {
   entries: Entry[];

@@ -2,19 +2,21 @@
 import { Category } from './types';
 
 export const INITIAL_CATEGORIES: Category[] = [
-  { id: '1', name: 'Работа', icon: 'Briefcase', color: 'blue' },
-  { id: '2', name: 'Семья', icon: 'Home', color: 'green' },
-  { id: '3', name: 'Здоровье', icon: 'Heart', color: 'red' },
-  { id: '4', name: 'Идеи', icon: 'Lightbulb', color: 'yellow' },
-  { id: '5', name: 'Личное', icon: 'User', color: 'purple' },
-  { id: '6', name: 'Настроение', icon: 'Smile', color: 'orange' },
+  { id: '1', name: 'Работа', icon: 'BriefcaseIcon', color: 'blue' },
+  { id: '2', name: 'Семья', icon: 'HomeIcon', color: 'green' },
+  { id: '3', name: 'Здоровье', icon: 'HeartIcon', color: 'red' },
+  { id: '4', name: 'Идеи', icon: 'LightBulbIcon', color: 'yellow' },
+  { id: '5', name: 'Личное', icon: 'UserIcon', color: 'purple' },
+  { id: '6', name: 'Настроение', icon: 'FaceSmileIcon', color: 'orange' },
 ];
 
 export const ICON_LIBRARY = [
-  'Briefcase', 'Home', 'Heart', 'Lightbulb', 'User', 'UserIcon', 'Smile', 'SmileIcon', 
-  'Star', 'Coffee', 'Cloud', 'Moon', 'Sun', 'Book', 'Camera', 'Music', 'Map', 'Zap', 
-  'Target', 'Calendar', 'CalendarIcon', 'MessageCircle', 'MessageCircleIcon',
-  'MessageSquare', 'MessageSquareIcon', 'HelpCircle', 'HelpCircleIcon'
+  'BriefcaseIcon', 'HomeIcon', 'HeartIcon', 'LightBulbIcon', 'UserIcon', 'FaceSmileIcon',
+  'StarIcon', 'CakeIcon', 'CloudIcon', 'MoonIcon', 'SunIcon', 'BookOpenIcon', 
+  'CameraIcon', 'MusicalNoteIcon', 'MapIcon', 'BoltIcon', 'CalendarIcon',
+  'ChatBubbleLeftIcon', 'ChatBubbleLeftSquareIcon', 'QuestionMarkCircleIcon',
+  'SparklesIcon', 'RocketLaunchIcon', 'FireIcon', 'BeakerIcon', 'GlobeAltIcon',
+  'TrophyIcon', 'PuzzlePieceIcon', 'PaintBrushIcon', 'AcademicCapIcon', 'ShoppingBagIcon'
 ];
 
 export const COLORS = [

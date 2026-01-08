@@ -1,6 +1,12 @@
 
 import React, { useEffect } from 'react';
-import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react';
+import { 
+  XMarkIcon as X,
+  ExclamationCircleIcon as AlertCircle,
+  CheckCircleIcon as CheckCircle,
+  InformationCircleIcon as Info,
+  ExclamationTriangleIcon as AlertTriangle
+} from '@heroicons/react/24/outline';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 

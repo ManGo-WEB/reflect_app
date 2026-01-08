@@ -4,7 +4,13 @@ import { Category } from '../types';
 import { ICON_LIBRARY, COLORS } from '../constants';
 import { IconRenderer } from './IconRenderer';
 import { getColorClasses, getBg500Class } from '../utils/colorUtils';
-import { Plus, X, Trash2, Edit2, Check } from 'lucide-react';
+import { 
+  PlusIcon as Plus,
+  XMarkIcon as X,
+  TrashIcon as Trash2,
+  PencilIcon as Edit2,
+  CheckIcon as Check
+} from '@heroicons/react/24/outline';
 
 interface CategoryManagerProps {
   categories: Category[];

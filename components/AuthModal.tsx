@@ -1,6 +1,14 @@
 
 import React, { useState } from 'react';
-import { X, Mail, Lock, User as UserIcon, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { 
+  XMarkIcon as X,
+  EnvelopeIcon as Mail,
+  LockClosedIcon as Lock,
+  UserIcon,
+  ExclamationCircleIcon as AlertCircle,
+  EyeIcon as Eye,
+  EyeSlashIcon as EyeOff
+} from '@heroicons/react/24/outline';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { supabase } from '../services/supabaseClient';

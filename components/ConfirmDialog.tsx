@@ -1,6 +1,9 @@
 
 import React from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import { 
+  ExclamationTriangleIcon as AlertTriangle,
+  XMarkIcon as X
+} from '@heroicons/react/24/outline';
 
 interface ConfirmDialogProps {
   isOpen: boolean;

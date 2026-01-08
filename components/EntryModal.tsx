@@ -4,7 +4,12 @@ import { Category, Entry } from '../types';
 import { IconRenderer } from './IconRenderer';
 import { getColorClasses, getText500Class } from '../utils/colorUtils';
 import { formatISOStringForInput, formatISOStringForDisplay, getTodayDateString } from '../utils/dateUtils';
-import { X, Calendar as CalendarIcon, ChevronDown, Check } from 'lucide-react';
+import { 
+  XMarkIcon as X,
+  CalendarIcon,
+  ChevronDownIcon as ChevronDown,
+  CheckIcon as Check
+} from '@heroicons/react/24/outline';
 
 interface EntryModalProps {
   isOpen: boolean;
