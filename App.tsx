@@ -143,6 +143,7 @@ const App: React.FC = () => {
           <span className="font-medium text-xl text-[rgba(0,0,0,0.87)]">Reflect</span>
         </div>
         
+        {/* Desktop Navigation */}
         <div className="hidden md:flex gap-1">
           {[
             { id: ViewMode.DASHBOARD, label: 'Дневник', icon: LayoutDashboard },
@@ -164,15 +165,30 @@ const App: React.FC = () => {
           ))}
         </div>
 
-        <div className="md:w-32 flex justify-end items-center gap-3">
-          <span className="hidden md:block text-sm text-[rgba(0,0,0,0.6)] truncate max-w-[200px]">
+        {/* Mobile Navigation - Контексты кнопка */}
+        <div className="md:hidden flex items-center gap-2">
+          <button
+            onClick={() => setView(ViewMode.CATEGORIES)}
+            className={`p-2 rounded-lg transition-all ripple ${
+              view === ViewMode.CATEGORIES 
+                ? 'bg-[#1976D2] text-white' 
+                : 'text-[rgba(0,0,0,0.6)] hover:bg-[rgba(0,0,0,0.04)]'
+            }`}
+            title="Контексты"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="flex justify-end items-center gap-2 sm:gap-3 flex-1 sm:flex-initial sm:w-auto">
+          <span className="hidden sm:block text-xs sm:text-sm text-[rgba(0,0,0,0.6)] truncate max-w-[120px] sm:max-w-[200px]">
             {user?.email}
           </span>
           <button
             onClick={handleSignOut}
             className="p-2 hover:bg-[rgba(0,0,0,0.04)] rounded-full transition-colors ripple"
             aria-label="Выйти"
-            title="Выйти"
+            title={user?.email || "Выйти"}
           >
             <LogOut className="w-5 h-5 text-[rgba(0,0,0,0.6)]" />
           </button>
