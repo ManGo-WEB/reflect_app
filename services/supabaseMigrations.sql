@@ -102,3 +102,9 @@ CREATE POLICY "Users can update their own reports"
 CREATE POLICY "Users can delete their own reports"
   ON reports FOR DELETE
   USING (auth.uid() = user_id);
+
+-- Включение Realtime для синхронизации данных между браузерами
+-- Это позволяет получать обновления в реальном времени при изменении данных
+ALTER PUBLICATION supabase_realtime ADD TABLE entries;
+ALTER PUBLICATION supabase_realtime ADD TABLE categories;
+ALTER PUBLICATION supabase_realtime ADD TABLE reports;

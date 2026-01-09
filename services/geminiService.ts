@@ -1,5 +1,7 @@
 
 import { Entry, Category } from "../types";
+import { getSystemPrompt } from "../config/systemPrompt";
+import { buildReportPrompt } from "../config/reportPrompt";
 
 // URL прокси-сервера (используем переменную окружения или дефолтное значение)
 // В dev режиме используем относительный путь для проксирования через Vite
@@ -14,28 +16,8 @@ export const generateAIReport = async (
     return "Записей за этот период не найдено.";
   }
 
-  const entriesFormatted = entries.map(e => {
-    const cat = categories.find(c => c.id === e.categoryId);
-    return `[${new Date(e.createdAt).toLocaleTimeString('ru-RU')}][Категория: ${cat?.name || 'Неизвестно'}] ${e.text}`;
-  }).join('\n');
-
-  const periodTranslation: Record<string, string> = {
-    'Day': 'дневной',
-    'Week': 'еженедельный',
-    'Month': 'ежемесячный'
-  };
-
-  const prompt = `
-    Проанализируй следующие записи дневника и составь ${periodTranslation[period] || 'аналитический'} отчет.
-    Ответ должен быть на русском языке в формате Markdown со следующими разделами:
-    1. **Краткий обзор**: Краткое резюме ключевых событий и действий.
-    2. **Эмоциональный фон**: Проанализируй эмоциональный тон и ментальное состояние, отраженные в записях.
-    3. **Паттерны и инсайты**: Выяви повторяющиеся формы поведения, привычки или связи между действиями и эмоциями.
-    4. **Рекомендации**: 2-3 совета для повышения осознанности или улучшения благополучия на основе наблюдений.
-
-    Записи дневника:
-    ${entriesFormatted}
-  `;
+  // Формируем промпт для отчета
+  const prompt = buildReportPrompt(entries, categories, period);
 
   try {
     console.log('Начинаю генерацию отчета AI через прокси...', { 
@@ -53,6 +35,9 @@ export const generateAIReport = async (
     
     console.log('Отправка запроса к:', endpoint);
     
+    // Получаем системный промпт
+    const systemPrompt = getSystemPrompt();
+    
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -60,6 +45,7 @@ export const generateAIReport = async (
       },
       body: JSON.stringify({
         prompt,
+        systemInstruction: systemPrompt,
         model: 'gemini-3-flash-preview',
         temperature: 0.7,
         topP: 0.95,

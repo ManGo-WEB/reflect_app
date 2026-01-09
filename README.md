@@ -55,6 +55,9 @@ npm install
 VITE_SUPABASE_URL=ваш_project_url
 VITE_SUPABASE_ANON_KEY=ваш_anon_key
 GEMINI_API_KEY=ваш_api_ключ_здесь
+
+# Опционально: переопределение системного промпта для AI отчетов
+# VITE_SYSTEM_PROMPT=Ваш кастомный системный промпт здесь
 ```
 
 7. Запустите приложение:

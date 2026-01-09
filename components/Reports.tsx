@@ -26,6 +26,12 @@ const PERIOD_LABELS = {
   'Month': 'Месяц'
 };
 
+const PERIOD_REPORT_LABELS = {
+  'Day': 'Ежедневный',
+  'Week': 'Недельный',
+  'Month': 'Месячный'
+};
+
 export const Reports: React.FC<ReportsProps> = ({ entries, categories, reports, onReportGenerated }) => {
   const { showError } = useToast();
   const [loading, setLoading] = useState(false);
@@ -67,7 +73,7 @@ export const Reports: React.FC<ReportsProps> = ({ entries, categories, reports, 
   };
 
   return (
-    <div className="h-full max-w-4xl mx-auto p-4 md:p-8 overflow-y-auto no-scrollbar bg-[#FAFAFA]">
+    <div className="h-full max-w-4xl mx-auto p-4 md:p-8 pb-32 md:pb-8 overflow-y-auto no-scrollbar bg-[#FAFAFA]">
       <header className="mb-8">
         <h1 className="text-2xl font-medium text-[rgba(0,0,0,0.87)] mb-1">AI Аналитика</h1>
         <p className="text-sm text-[rgba(0,0,0,0.6)]">Найдите скрытые закономерности в вашей жизни.</p>
@@ -78,7 +84,7 @@ export const Reports: React.FC<ReportsProps> = ({ entries, categories, reports, 
           <div className="flex justify-between items-start mb-6">
             <div>
               <span className="inline-block px-3 py-1 bg-[#E3F2FD] text-[#1976D2] text-xs font-medium rounded-full uppercase tracking-wider mb-2">
-                {PERIOD_LABELS[selectedReport.period as keyof typeof PERIOD_LABELS]}ный отчет
+                {PERIOD_REPORT_LABELS[selectedReport.period as keyof typeof PERIOD_REPORT_LABELS]} отчет
               </span>
               <h2 className="text-lg font-medium text-[rgba(0,0,0,0.87)]">
                 {format(new Date(selectedReport.startDate), 'dd.MM.yyyy', { locale: ru })} — {format(new Date(selectedReport.endDate), 'dd.MM.yyyy', { locale: ru })}
@@ -164,7 +170,7 @@ export const Reports: React.FC<ReportsProps> = ({ entries, categories, reports, 
                   >
                     <div className="text-left">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-medium text-[#1976D2] uppercase">{PERIOD_LABELS[report.period as keyof typeof PERIOD_LABELS]}ный</span>
+                        <span className="text-xs font-medium text-[#1976D2] uppercase">{PERIOD_REPORT_LABELS[report.period as keyof typeof PERIOD_REPORT_LABELS]}</span>
                         <span className="text-xs text-[rgba(0,0,0,0.6)]">• {format(new Date(report.generatedAt), 'dd.MM.yyyy, HH:mm', { locale: ru })}</span>
                       </div>
                       <p className="font-normal text-sm text-[rgba(0,0,0,0.87)]">

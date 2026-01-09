@@ -18,6 +18,7 @@ import {
 } from '../services/supabaseService';
 import { migrateLocalStorageToSupabase, shouldMigrate } from '../utils/migrateLocalStorage';
 import { useToast } from '../hooks/useToast';
+import { supabase } from '../services/supabaseClient';
 
 export const useJournal = () => {
   const { user, loading: authLoading } = useAuth();
@@ -102,17 +103,71 @@ export const useJournal = () => {
     }
   }, [user, authLoading, loadData]);
 
-  // Подписка на изменения в реальном времени (опционально)
+  // Подписка на изменения в реальном времени для синхронизации между браузерами
   useEffect(() => {
     if (!user) return;
 
-    // Можно добавить realtime подписки здесь для синхронизации данных
-    // const channel = supabase.channel('journal-changes')
-    //   .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, () => {
-    //     loadData();
-    //   })
-    //   .subscribe();
-    // return () => { supabase.removeChannel(channel); };
+    const channel = supabase
+      .channel(`journal-changes-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'entries',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          // Перезагружаем записи при изменении
+          getEntries(user.id).then(setEntries).catch(console.error);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'categories',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          // Перезагружаем категории при изменении
+          getCategories(user.id).then(setCategories).catch(console.error);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reports',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          // Перезагружаем отчеты при изменении
+          getReports(user.id).then(setReports).catch(console.error);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  // Дополнительная синхронизация при фокусе окна (на случай пропуска realtime событий)
+  useEffect(() => {
+    if (!user) return;
+
+    const handleFocus = () => {
+      // Перезагружаем данные при возврате фокуса на окно
+      loadData();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [user, loadData]);
 
   const addEntry = async (text: string, categoryId: string, customDate?: string) => {

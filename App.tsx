@@ -135,7 +135,7 @@ const App: React.FC = () => {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#FAFAFA] text-[rgba(0,0,0,0.87)]">
       {/* Top Navbar */}
-      <nav className="flex-shrink-0 bg-white elevation-2 h-16 flex items-center justify-between px-6 sticky top-0 z-40">
+      <nav className="flex-shrink-0 bg-white elevation-2 h-16 flex items-center justify-between px-6 sticky top-0 z-40 relative">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-[#1976D2] rounded-full flex items-center justify-center">
             <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
@@ -165,8 +165,8 @@ const App: React.FC = () => {
           ))}
         </div>
 
-        {/* Mobile Navigation - Контексты кнопка */}
-        <div className="md:hidden flex items-center gap-2">
+        {/* Mobile Navigation - Контексты кнопка по центру */}
+        <div className="md:hidden absolute left-1/2 -translate-x-1/2">
           <button
             onClick={() => setView(ViewMode.CATEGORIES)}
             className={`p-2 rounded-lg transition-all ripple ${

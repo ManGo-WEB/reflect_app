@@ -37,7 +37,7 @@ console.log(`Прокси пользователь: ${PROXY_USER}`);
 // Прокси эндпоинт для Gemini API
 app.post('/api/gemini/generate', async (req, res) => {
   try {
-    const { prompt, model = 'gemini-3-flash-preview', temperature = 0.7, topP = 0.95 } = req.body;
+    const { prompt, systemInstruction, model = 'gemini-3-flash-preview', temperature = 0.7, topP = 0.95 } = req.body;
 
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
@@ -54,23 +54,35 @@ app.post('/api/gemini/generate', async (req, res) => {
 
     console.log('Отправка запроса через прокси к Gemini API...');
 
+    // Формируем тело запроса к Gemini API
+    const requestBody = {
+      contents: [{
+        parts: [{
+          text: prompt
+        }]
+      }],
+      generationConfig: {
+        temperature,
+        topP,
+      },
+    };
+
+    // Добавляем системный промпт, если он передан
+    if (systemInstruction) {
+      requestBody.systemInstruction = {
+        parts: [{
+          text: systemInstruction
+        }]
+      };
+    }
+
     const response = await fetch(geminiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       agent: proxyAgent, // Используем прокси агент
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }],
-        generationConfig: {
-          temperature,
-          topP,
-        },
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
