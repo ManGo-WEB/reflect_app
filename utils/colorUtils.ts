@@ -96,3 +96,5 @@ export const getText500Class = (color: string): string => {
   const colorName = (color as ColorName) || DEFAULT_COLOR;
   return COLOR_CLASSES[colorName]?.text500 || COLOR_CLASSES[DEFAULT_COLOR].text500;
 };
+
+

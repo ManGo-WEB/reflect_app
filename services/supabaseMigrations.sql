@@ -108,3 +108,4 @@ CREATE POLICY "Users can delete their own reports"
 ALTER PUBLICATION supabase_realtime ADD TABLE entries;
 ALTER PUBLICATION supabase_realtime ADD TABLE categories;
 ALTER PUBLICATION supabase_realtime ADD TABLE reports;
+
