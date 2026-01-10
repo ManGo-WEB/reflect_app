@@ -15,6 +15,7 @@ import {
   updateCategory as updateCategoryService,
   deleteCategory as deleteCategoryService,
   createReport as createReportService,
+  deleteReport as deleteReportService,
 } from '../services/supabaseService';
 import { migrateLocalStorageToSupabase, shouldMigrate } from '../utils/migrateLocalStorage';
 import { useToast } from '../hooks/useToast';
@@ -300,6 +301,22 @@ export const useJournal = () => {
     }
   };
 
+  const deleteReport = async (id: string) => {
+    if (!user) {
+      showError('Необходима авторизация');
+      return;
+    }
+
+    try {
+      await deleteReportService(user.id, id);
+      setReports((prev) => prev.filter((r) => r.id !== id));
+    } catch (error: any) {
+      console.error('Ошибка удаления отчета:', error);
+      showError('Ошибка при удалении отчета');
+      throw error;
+    }
+  };
+
   const clearHistory = async () => {
     if (!user) {
       showError('Необходима авторизация');
@@ -329,6 +346,7 @@ export const useJournal = () => {
     updateCategory,
     deleteCategory,
     addReport,
+    deleteReport,
     clearHistory,
     refresh: loadData,
   };

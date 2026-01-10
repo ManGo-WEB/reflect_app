@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Entry, Category, Report } from '../types';
 import { generateAIReport } from '../services/geminiService';
 import { useToast } from '../hooks/useToast';
@@ -10,14 +11,17 @@ import {
   ClockIcon as History,
   ArrowPathIcon as Loader2,
   DocumentTextIcon as FileText,
-  ChevronRightIcon as ChevronRight
+  ChevronRightIcon as ChevronRight,
+  TrashIcon as Trash2
 } from '@heroicons/react/24/outline';
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface ReportsProps {
   entries: Entry[];
   categories: Category[];
   reports: Report[];
   onReportGenerated: (report: Report) => void;
+  onDeleteReport?: (reportId: string) => void;
 }
 
 const PERIOD_LABELS = {
@@ -32,11 +36,16 @@ const PERIOD_REPORT_LABELS = {
   'Month': 'Месячный'
 };
 
-export const Reports: React.FC<ReportsProps> = ({ entries, categories, reports, onReportGenerated }) => {
+export const Reports: React.FC<ReportsProps> = ({ entries, categories, reports, onReportGenerated, onDeleteReport }) => {
   const { showError } = useToast();
   const [loading, setLoading] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [period, setPeriod] = useState<'Day' | 'Week' | 'Month'>('Week');
+  const [hoveredReportId, setHoveredReportId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; reportId: string | null }>({
+    isOpen: false,
+    reportId: null,
+  });
 
   const generateReport = async () => {
     setLoading(true);
@@ -72,6 +81,26 @@ export const Reports: React.FC<ReportsProps> = ({ entries, categories, reports, 
     }
   };
 
+  const handleDeleteClick = (e: React.MouseEvent, reportId: string) => {
+    e.stopPropagation();
+    setConfirmDelete({ isOpen: true, reportId });
+  };
+
+  const handleConfirmDelete = () => {
+    if (confirmDelete.reportId) {
+      onDeleteReport?.(confirmDelete.reportId);
+      // Если удаляемый отчет был выбран, сбрасываем выбор
+      if (selectedReport?.id === confirmDelete.reportId) {
+        setSelectedReport(null);
+      }
+      setConfirmDelete({ isOpen: false, reportId: null });
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmDelete({ isOpen: false, reportId: null });
+  };
+
   return (
     <div className="h-full max-w-4xl mx-auto p-4 md:p-8 pb-32 md:pb-8 overflow-y-auto no-scrollbar bg-[#FAFAFA]">
       <header className="mb-8">
@@ -97,12 +126,22 @@ export const Reports: React.FC<ReportsProps> = ({ entries, categories, reports, 
               Назад к списку
             </button>
           </div>
-          <div className="prose prose-slate max-w-none">
-            {selectedReport.content.split('\n').map((line, i) => (
-              <p key={i} className="text-[rgba(0,0,0,0.87)] leading-relaxed mb-4 text-sm">
-                {line.startsWith('**') ? <strong className="text-[rgba(0,0,0,0.87)] block mt-6 mb-2 font-medium">{line.replace(/\*\*/g, '')}</strong> : line}
-              </p>
-            ))}
+          <div className="prose prose-slate max-w-none markdown-content">
+            <ReactMarkdown
+              components={{
+                h2: ({...props}) => <h2 className="text-xl font-medium text-[rgba(0,0,0,0.87)] mt-8 mb-4 first:mt-0" {...props} />,
+                h3: ({...props}) => <h3 className="text-lg font-medium text-[rgba(0,0,0,0.87)] mt-6 mb-3" {...props} />,
+                p: ({...props}) => <p className="text-sm text-[rgba(0,0,0,0.87)] leading-relaxed mb-4" {...props} />,
+                ul: ({...props}) => <ul className="list-disc list-inside mb-4 space-y-2 text-sm text-[rgba(0,0,0,0.87)]" {...props} />,
+                ol: ({...props}) => <ol className="list-decimal list-inside mb-4 space-y-2 text-sm text-[rgba(0,0,0,0.87)]" {...props} />,
+                li: ({...props}) => <li className="leading-relaxed" {...props} />,
+                strong: ({...props}) => <strong className="font-medium text-[rgba(0,0,0,0.87)]" {...props} />,
+                em: ({...props}) => <em className="italic" {...props} />,
+                blockquote: ({...props}) => <blockquote className="border-l-4 border-[#1976D2] pl-4 italic my-4 text-[rgba(0,0,0,0.6)]" {...props} />,
+              }}
+            >
+              {selectedReport.content}
+            </ReactMarkdown>
           </div>
         </div>
       ) : (
@@ -162,29 +201,60 @@ export const Reports: React.FC<ReportsProps> = ({ entries, categories, reports, 
                   <p className="text-sm font-normal">История пуста</p>
                 </div>
               ) : (
-                reports.map(report => (
-                  <button
-                    key={report.id}
-                    onClick={() => setSelectedReport(report)}
-                    className="w-full bg-white p-4 rounded-lg elevation-1 hover:elevation-4 flex items-center justify-between group transition-all ripple"
-                  >
-                    <div className="text-left">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-medium text-[#1976D2] uppercase">{PERIOD_REPORT_LABELS[report.period as keyof typeof PERIOD_REPORT_LABELS]}</span>
-                        <span className="text-xs text-[rgba(0,0,0,0.6)]">• {format(new Date(report.generatedAt), 'dd.MM.yyyy, HH:mm', { locale: ru })}</span>
-                      </div>
-                      <p className="font-normal text-sm text-[rgba(0,0,0,0.87)]">
-                        {format(new Date(report.startDate), 'dd.MM.yyyy', { locale: ru })} — {format(new Date(report.endDate), 'dd.MM.yyyy', { locale: ru })}
-                      </p>
+                reports.map(report => {
+                  const isHovered = hoveredReportId === report.id;
+                  return (
+                    <div
+                      key={report.id}
+                      className="relative group"
+                      onMouseEnter={() => setHoveredReportId(report.id)}
+                      onMouseLeave={() => setHoveredReportId(null)}
+                    >
+                      <button
+                        onClick={() => setSelectedReport(report)}
+                        className="w-full bg-white p-4 rounded-lg elevation-1 hover:elevation-4 flex items-center justify-between transition-all ripple"
+                      >
+                        <div className="text-left">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-medium text-[#1976D2] uppercase">{PERIOD_REPORT_LABELS[report.period as keyof typeof PERIOD_REPORT_LABELS]}</span>
+                            <span className="text-xs text-[rgba(0,0,0,0.6)]">• {format(new Date(report.generatedAt), 'dd.MM.yyyy, HH:mm', { locale: ru })}</span>
+                          </div>
+                          <p className="font-normal text-sm text-[rgba(0,0,0,0.87)]">
+                            {format(new Date(report.startDate), 'dd.MM.yyyy', { locale: ru })} — {format(new Date(report.endDate), 'dd.MM.yyyy', { locale: ru })}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {isHovered && onDeleteReport && (
+                            <button
+                              onClick={(e) => handleDeleteClick(e, report.id)}
+                              className="p-1.5 hover:bg-[#FFEBEE] text-[rgba(0,0,0,0.6)] hover:text-[#D32F2F] rounded-full transition-all ripple z-10"
+                              title="Удалить отчет"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                          <ChevronRight className="w-5 h-5 text-[rgba(0,0,0,0.38)] group-hover:text-[#1976D2] transition-colors" />
+                        </div>
+                      </button>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-[rgba(0,0,0,0.38)] group-hover:text-[#1976D2] transition-colors" />
-                  </button>
-                ))
+                  );
+                })
               )}
             </div>
           </section>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={confirmDelete.isOpen}
+        title="Удалить отчет?"
+        message="Вы уверены, что хотите удалить этот отчет? Это действие нельзя отменить."
+        confirmText="Удалить"
+        cancelText="Отмена"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        type="danger"
+      />
     </div>
   );
 };

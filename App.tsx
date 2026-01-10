@@ -20,7 +20,7 @@ import {
 
 const App: React.FC = () => {
   const { user, loading: authLoading, signOut } = useAuth();
-  const { entries, categories, reports, addEntry, updateEntry, deleteEntry, addCategory, updateCategory, deleteCategory, addReport, loading: journalLoading } = useJournal();
+  const { entries, categories, reports, addEntry, updateEntry, deleteEntry, addCategory, updateCategory, deleteCategory, addReport, deleteReport, loading: journalLoading } = useJournal();
   const { toasts, removeToast, showError } = useToast();
   const [view, setView] = useState<ViewMode>(ViewMode.DASHBOARD);
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
@@ -61,6 +61,10 @@ const App: React.FC = () => {
     deleteEntry(entryId);
   };
 
+  const handleDeleteReport = (reportId: string) => {
+    deleteReport(reportId);
+  };
+
   const handleCloseModal = () => {
     setIsEntryModalOpen(false);
     setEditingEntry(null);
@@ -78,7 +82,7 @@ const App: React.FC = () => {
           />
         );
       case ViewMode.REPORTS:
-        return <Reports entries={entries} categories={categories} reports={reports} onReportGenerated={addReport} />;
+        return <Reports entries={entries} categories={categories} reports={reports} onReportGenerated={addReport} onDeleteReport={handleDeleteReport} />;
       case ViewMode.CATEGORIES:
         return <CategoryManager categories={categories} onAdd={addCategory} onUpdate={updateCategory} onDelete={deleteCategory} />;
       default:

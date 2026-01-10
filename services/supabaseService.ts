@@ -313,3 +313,16 @@ export const createReport = async (userId: string, report: Omit<Report, 'id'>): 
     generatedAt: row.generated_at,
   };
 };
+
+export const deleteReport = async (userId: string, reportId: string): Promise<void> => {
+  const { error } = await supabase
+    .from('reports')
+    .delete()
+    .eq('id', reportId)
+    .eq('user_id', userId);
+
+  if (error) {
+    handleAuthError(error);
+    throw error;
+  }
+};
